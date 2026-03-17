@@ -6,7 +6,9 @@ from werkzeug.utils import secure_filename
 from app.models import UserProfile
 from app.forms import LoginForm
 from werkzeug.security import check_password_hash
-from app.forms import UploadForm
+from app.forms import UploadForm, LoginForm
+
+
 
 
 ALLOWED_EXTENSIONS = {".jpg", ".jpeg", ".png"}
@@ -24,17 +26,16 @@ def get_uploaded_images(upload_folder):
 # Routing for your application.
 ###
 
-def init_routes(app):
-    @app.route('/')
-    def home():
-     """Render website's home page."""
+@app.route('/')
+def home():
+    """Render website's home page."""
     return render_template('home.html')
 
 
 @app.route('/about/')
 def about():
     """Render the website's about page."""
-    return render_template('about.html', name="Mary Jane")
+    return render_template('about.html', name="Sheldon Jones")
 
 
 @app.route('/upload', methods=['POST', 'GET'])
@@ -46,10 +47,14 @@ def upload():
     if form.validate_on_submit():
         # Get file data and save to your uploads folder
         file = form.photo.data
+        filename = secure_filename(file.filename)
+        file_path = os.path.join(app.config['UPLOAD_FOLDER'], filename)
+        file.save(file_path)
         flash('File Saved', 'success')
+        
         return redirect(url_for('home')) # Update this to redirect the user to a route that displays all uploaded image files
 
-    return render_template('upload.html')
+    return render_template('upload.html', form=form)
 
 
 @app.route('/login', methods=['POST', 'GET'])
@@ -84,14 +89,6 @@ def login():
         return redirect(url_for("home"))  # The user should be redirected to the upload form instead
     return render_template("login.html", form=form)
 
-
-
-                    
-
-               
-            
-
-        return render_template("login.html", form=form)
 
 
 # user_loader callback. This callback is used to reload the user object from
