@@ -7,6 +7,7 @@ from app.models import UserProfile
 from app.forms import LoginForm
 from werkzeug.security import check_password_hash
 from app.forms import UploadForm, LoginForm
+from flask import send_from_directory
 
 
 
@@ -132,3 +133,28 @@ def add_header(response):
 def page_not_found(error):
     """Custom 404 page."""
     return render_template('404.html'), 404
+
+def get_uploaded_images():
+    """Helper function to get a list of images from the uploads folder."""
+    # This list will hold our image filenames
+    image_list = []
+    upload_path = app.config['UPLOAD_FOLDER']
+    
+    for filename in os.listdir(upload_path):
+        if "." in filename:
+            image_list.append(filename)
+            
+    return image_list
+
+
+@app.route('/uploads/<filename>')
+def get_image(filename):
+    # This sends the actual file from my folder to the browser
+    
+    return send_from_directory(os.path.join(os.getcwd(), app.config['UPLOAD_FOLDER']), filename)
+
+@app.route('/files')
+@login_required # requirement to login before
+def files():    
+    file_list = get_uploaded_images()
+    return render_template('files.html', filenames=file_list)
